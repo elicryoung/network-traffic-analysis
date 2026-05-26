@@ -38,8 +38,8 @@ The project will later expand into:
 
 1. Phase 1 — Environment Setup & Wireshark Basics
 2. Phase 2 — Real-Time Traffic & Protocol Deep Dives
-3. Phase 3 - Suspicious Traffic Patterns
-4. Phase 4 - Analysis Challenges and Documentation
+3. Phase 3 - Suspicious Traffic Patterns & Analysis Challenges
+4. Phase 4 - Documentation
 
 ---
 
@@ -119,6 +119,13 @@ By the end of Phase 1 I have:
 
 # Phase 2
 ## Real-Time Traffic.
+
+
+
+
+
+
+`https://www.netresec.com/?page=MACCDC`
 
 
 

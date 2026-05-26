@@ -57,32 +57,36 @@
 
 ## Build Phases
 
-### Phase 1: Environment Setup & Wireshark Basics (Day 1, ~3 hours)
+### Phase 1 — Environment Setup & Wireshark Basics (Day 1, ~3 hours)
 - Install Wireshark on Mac
 - Learn the interface layout (packet list, details, bytes)
 - Understand colour coding and what it means
 - Practice basic navigation on a sample PCAP
 - Learn essential display filter syntax
 
-### Phase 2: Protocol Deep Dives (Days 2-3, ~6 hours)
+### Phase 2 — Real-Time Traffic & Protocol Deep Dives (Days 2-3, ~6 hours)
+- Capture live traffic from your own machine using tcpdump
+- Load live captures into Wireshark and explore what you generated
 - Analyse TCP handshakes and connection teardowns
 - Examine HTTP traffic and extract useful information
 - Understand DNS queries and responses
 - Look at DHCP and ARP in network context
 - Identify which protocols are normal vs concerning on different networks
 
-### Phase 3: Suspicious Traffic Patterns (Days 4-5, ~6 hours)
+### Phase 3 — Suspicious Traffic Patterns & Analysis Challenges (Days 4-6, ~8 hours)
 - Analyse PCAPs containing port scans
 - Identify brute force attack patterns in network traffic
 - Examine command-and-control (C2) beaconing
 - Look for data exfiltration indicators
 - Analyse DNS tunneling examples
-
-### Phase 4: Analysis Challenges & Documentation (Days 6-7, ~5 hours)
 - Complete 3-4 CTF-style PCAP challenges
-- Create analysis reports for portfolio
+- Create analysis write-ups for each challenge as you go
+
+### Phase 4 — Documentation (Day 7, ~3 hours)
 - Build your Wireshark filter cheat sheet
-- Compile suspicious traffic patterns guide
+- Compile your suspicious traffic patterns guide
+- Finalise and polish all portfolio write-ups
+- Answer the self-assessment questions as a review pass
 
 ---
 
@@ -252,9 +256,9 @@ TOOLS I HAVE:
 WHERE I AM IN THE PROJECT:
 [UPDATE THIS AS YOU PROGRESS]
 - [ ] Phase 1: Environment Setup & Wireshark Basics
-- [ ] Phase 2: Protocol Deep Dives
-- [ ] Phase 3: Suspicious Traffic Patterns
-- [ ] Phase 4: Analysis Challenges & Documentation
+- [ ] Phase 2: Real-Time Traffic & Protocol Deep Dives
+- [ ] Phase 3: Suspicious Traffic Patterns & Analysis Challenges
+- [ ] Phase 4: Documentation
 
 CURRENT PHASE: [Tell Claude which phase you're on]
 
@@ -264,7 +268,7 @@ Please help me work through this project step by step. Start by confirming you u
 
 ## Progress Checklist
 
-### Phase 1: Environment Setup & Wireshark Basics
+### Phase 1 — Environment Setup & Wireshark Basics
 - [ ] Wireshark installed and working
 - [ ] Understand packet list, details, and bytes panes
 - [ ] Understand colour coding
@@ -272,24 +276,27 @@ Please help me work through this project step by step. Start by confirming you u
 - [ ] Know basic display filter syntax
 - [ ] Downloaded at least 2 sample PCAPs
 
-### Phase 2: Protocol Deep Dives
+### Phase 2 — Real-Time Traffic & Protocol Deep Dives
+- [ ] Captured live traffic from your own machine using tcpdump
+- [ ] Loaded live capture into Wireshark and explored it
 - [ ] Can identify and explain TCP handshake
 - [ ] Understand HTTP request/response structure
 - [ ] Know DNS query/response format
 - [ ] Understand DHCP and ARP basics
 - [ ] Created protocol analysis notes
 
-### Phase 3: Suspicious Traffic Patterns
+### Phase 3 — Suspicious Traffic Patterns & Analysis Challenges
 - [ ] Analysed a port scan PCAP
 - [ ] Identified beaconing in sample traffic
 - [ ] Examined C2 communication patterns
-- [ ] Looked at DNS tunneling example
-- [ ] Created suspicious patterns guide
+- [ ] Looked at a DNS tunneling example
+- [ ] Completed at least 3 CTF-style PCAP challenges
+- [ ] Created analysis write-ups for each challenge
 
-### Phase 4: Analysis Challenges & Documentation
-- [ ] Completed at least 3 PCAP challenges
-- [ ] Created analysis write-ups for portfolio
+### Phase 4 — Documentation
 - [ ] Built display filter cheat sheet
+- [ ] Compiled suspicious traffic patterns guide
+- [ ] Finalised all portfolio write-ups
 - [ ] Answered all self-assessment questions correctly
 
 ---
