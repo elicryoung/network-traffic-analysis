@@ -118,7 +118,7 @@ By the end of Phase 1 I have:
 - started building a personal Wireshark cheat sheet
 
 # Phase 2
-## Real-Time Traffic.
+## Real-Time Traffic
 
 
 
