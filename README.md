@@ -288,10 +288,10 @@ These captures were imported into Wireshark and analysed using a combination of 
 | Metric | Value |
 |---|---|
 | File name | maccdc2010_00000_20100310205651.pcap |
-| Capture duration |  |
-| First packet time |  |
-| Last packet time |  |
-| Total packets |  |
-| Average packets/sec |  |
-| Average packet size |  |
+| Capture duration | 21:17:05 |
+| First packet time | 2010-03-10 19:56:51 |
+| Last packet time | 20-03-11 17:13:56 |
+| Total packets | 10000000 |
+| Average packets/sec | 130.5 |
+| Average packet size | 77B |
 
