@@ -119,6 +119,25 @@ By the end of Phase 1 I have:
 
 # Phase 2
 ## Real-Time Traffic
+For this phase I wanted to capture a portion of realtime traffic from my own network and analysis it using filters and other wireshark features to get a sense of what a real network security anlysist would do on a day-to-day basis.
+
+First thing to do was choose the network to record, I chose my wireless access point closest to my work station. I used wiresharks record feature the "Start capturing packets" button which looks like a shark fin. The section of traffic I captured was as follows
+
+| Metric | Value |
+|----------|----------|
+| Capture Duration | ~134 seconds |
+| Total Packets | 3,642 |
+| Primary Protocol | TCP (32.5%)|
+| IPv6 Traffic | Present (34.9%)|
+| DNS Traffic | Present |
+| ARP Traffic | Present |
+| NTP Traffic | Present |
+| Primary Application Traffic | HTTPS (TCP/443) |
+
+How I got this information was ny using the statistics page on wireshark, specifically:
+
+`Statistics → Capture File Properties`
+`Statistics → Protocol Hierarchy`
 
 
 
