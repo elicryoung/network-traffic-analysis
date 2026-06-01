@@ -13,7 +13,7 @@ project: 2 of 4
 
 # Project Overview
 
-Having completed the COMPTIA Network+ Exam, this project builds on the theoretical knoweldge gained and puts it into practice. Focusing on developing foundational packet analysis and network traffic investigation skills using Wireshark and PCAP analysis. 
+Having completed the COMPTIA Network+ Exam, this project builds on the theoretical knowledge gained and puts it into practice. Focusing on developing foundational packet analysis and network traffic investigation skills using Wireshark and PCAP analysis. 
 
 The goal is to understand how common network protocols operate in practice, how analysts inspect packet captures, and how suspicious traffic patterns can be identified during security investigations.
 
@@ -51,7 +51,7 @@ A structured project directory named `network=traffic-analysis` was then created
 - investigation write-ups
 - documentation
 - pcap-files
-- iamges (screenshots)
+- images (screenshots)
 
 Because this project is a little bit less like a real world investigation and more about getting to grips with network traffic and packet analysis I won't be mirroring any type of organisation expected in a workplace. 
 
@@ -136,15 +136,162 @@ First thing to do was choose the network to record, I chose my wireless access p
 
 How I got this information was ny using the statistics page on wireshark, specifically:
 
-`Statistics → Capture File Properties`
-`Statistics → Protocol Hierarchy`
+`Statistics → Capture File Properties` (img 2.1)
+`Statistics → Protocol Hierarchy` (img 2.2)
+
+### Initial Observations
+
+One thing that stood out immediately was just how much traffic was being generated in a relatively short period of time. In just over two minutes, more than 3,600 packets were captured, without doing anything specific.
+
+The majority of traffic was TCP-based, with a large amount of IPv6 traffic also present. Most application traffic was encrypted HTTPS traffic over port 443, which is expected on a modern network.
+
+Another thing I noticed was how difficult it would be to investigate a packet capture without using filters. With thousands of packets visible at once, it quickly becomes overwhelming to identify useful information manually.
+
+This reinforced why packet filtering is such an important skill for network and security analysts.
+
+## Using Filters
+
+To make the capture easier to analyse, I used a number of Wireshark display filters to isolate specific protocols and types of traffic.
+
+### DNS
+
+```wireshark
+dns
+```
+
+This filter displayed only DNS requests and responses. DNS traffic is particularly useful because it reveals which domains a system is communicating with, even when the actual application traffic is encrypted.
+
+Using this filter I was able to observe requests for a number of Microsoft, VS Code and GitHub Copilot related services.
+
+`487	29.165834	172.20.10.2	172.20.10.1	DNS	79	Standard query 0x696b HTTPS main.vscode-cdn.net`
+
+Was the initial DNS query from my machine to the DNS server
+
+### TCP
+
+```wireshark
+
+tcp
+
+```
+
+This filter displayed all TCP traffic. TCP was responsible for the majority of communication within the capture and included most HTTPS connections. Because it is so broad on its own, there is a huge amount of information on the interface and definitely needs to use additional filters. 
+
+### HTTPS
+
+```wireshark
+
+tcp.port == 443
+
+```
+
+This filter isolated encrypted HTTPS traffic. Although the packet contents could not be viewed directly due to encryption, source and destination information was still visible. Again, displays a lot of traffic due to most traffic being forced to use port 443 on modern web browsers.
 
 
 
+### TCP Connection Establishment
 
+```wireshark
 
+tcp.flags.syn == 1 && tcp.flags.ack == 0
 
-`https://www.netresec.com/?page=MACCDC`
+```
 
+This filter displayed the initial SYN packets used to begin TCP connections. These packets represent the first step of the TCP three-way handshake and allowed me to observe new connections being established between hosts.
 
+---
+
+### TCP Retransmissions
+
+```wireshark
+
+tcp.analysis.retransmission
+
+```
+
+This filter displayed packets that Wireshark identified as retransmissions. Retransmissions occur when a packet is not acknowledged and must be sent again. A small number of retransmissions is normal on most networks and can occur due to packet loss or temporary congestion.
+
+---
+
+### TCP Reset Packets
+
+```wireshark
+
+tcp.flags.reset == 1
+
+```
+
+This filter displayed TCP reset (RST) packets. Reset packets are used to immediately terminate a connection and can indicate that a service is unavailable, a connection was rejected, or communication was interrupted unexpectedly.
+
+---
+
+### IPv6 Traffic From a Specific Host
+
+```wireshark
+
+ipv6.addr == <address>
+
+```
+
+This filter isolated traffic associated with a specific IPv6 address. It was useful for examining communication involving a particular device and understanding how IPv6 was being used within the capture.
+
+### ARP
+
+```wireshark
+
+arp
+
+```
+
+This filter displayed Address Resolution Protocol traffic. ARP traffic showed devices resolving MAC addresses on the local network before communication could occur.
+
+### IPv6
+
+```wireshark
+
+ipv6
+
+```
+
+This filter displayed IPv6 traffic. I was surprised by how much IPv6 communication was present, highlighting how commonly modern systems use IPv6 alongside IPv4.
+
+## Summary
+
+This phase provided my first experience analysing a live packet capture generated from my own network traffic. Using Wireshark, I captured over 3,600 packets in just over two minutes, demonstrating how active a modern system is even when relatively idle.
+
+By examining protocol statistics and applying display filters, I was able to isolate and investigate different types of traffic including TCP, HTTPS, DNS, ARP, and IPv6. This made it significantly easier to identify patterns within the capture and understand the role each protocol plays in normal network communication.
+
+One of the most valuable lessons from this exercise was learning how much information can be obtained from network metadata alone, so much information comes from such basic things that we take for granted when using the internet. Although the majority of application traffic was encrypted using HTTPS, DNS requests, connection information, and protocol behaviour still provided useful insight into what services were being accessed and how communication was occurring.
+
+Overall, this phase improved my confidence using Wireshark and reinforced the importance of packet filtering when analysing network traffic. It also provided a practical introduction to the type of traffic investigation and protocol analysis that security analysts perform during day-to-day monitoring and incident response activities.
+
+# Phase 3
+## Suspicious traffic patterns
+
+Having gained experience analysing normal network traffic in Phase 2, the next objective was to investigate network captures containing realistic attack activity. To achieve this, a suitable source of publicly available packet captures was needed.
+
+After researching datasets commonly used for network security training and incident response exercises, I discovered the Netresec MACCDC packet capture archive. The archive contains traffic captured during the Mid-Atlantic Collegiate Cyber Defense Competition (MACCDC), a cybersecurity competition where teams defend enterprise networks while being subjected to realistic attacks and intrusion attempts. Found at `https://www.netresec.com/?page=MACCDC` (see img 3.1)
+
+The MACCDC datasets are widely used within the cybersecurity community because they contain genuine network activity, including both legitimate business traffic and malicious behaviour such as reconnaissance, exploitation attempts, and other forms of suspicious communication. This makes them valuable resources for developing packet analysis and threat hunting skills.
+
+For this phase, I selected two packet capture files for investigation/analysis:
+
+- maccdc2010_00000_20100310205651.pcap
+- maccdc2010_00003_20100311184520.pcap
+
+These captures were imported into Wireshark and analysed using a combination of protocol statistics, endpoint analysis, conversation tracking, and packet filtering techniques. The objective was to identify indicators of suspicious activity and apply the investigative process that a Security Operations Centre (SOC) analyst might follow when examining network traffic during a security incident.
+
+## maccdc2010_00000_20100310205651.pcap
+
+### Initial Capture Overview
+
+| Metric | Value |
+|---|---|
+| File name | maccdc2010_00000_20100310205651.pcap |
+| Capture duration |  |
+| First packet time |  |
+| Last packet time |  |
+| Total packets |  |
+| Average packets/sec |  |
+| Average packet size |  |
 
