@@ -39,7 +39,7 @@ The project will later expand into:
 1. Phase 1 — Environment Setup & Wireshark Basics
 2. Phase 2 — Real-Time Traffic & Protocol Deep Dives
 3. Phase 3 - Suspicious Traffic Patterns & Analysis Challenges
-4. Phase 4 - Documentation
+4. Phase 4 - Documentation (this readme)
 
 ---
 
@@ -470,17 +470,11 @@ This was a significant finding because the traffic was no longer simply suspicio
 At this stage I was confident that:
 
 | Artifact | Value |
-
 |---|---|
-
 | Suspected Infected Host | **10.2.28.88** |
-
 | External RAT Server | **45.131.214.85** |
-
 | Malware Activity | **NetSupport Manager / Gateway** |
-
 | URL Observed | **http://45.131.214.85/fakeurl.htm** |
-
 | Behaviour | **Beaconing / periodic communication** |
 
 ---
