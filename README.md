@@ -266,32 +266,118 @@ One of the most valuable lessons from this exercise was learning how much inform
 Overall, this phase improved my confidence using Wireshark and reinforced the importance of packet filtering when analysing network traffic. It also provided a practical introduction to the type of traffic investigation and protocol analysis that security analysts perform during day-to-day monitoring and incident response activities.
 
 # Phase 3
-## Suspicious traffic patterns
+## Suspicious Traffic Patterns
 
-Having gained experience analysing normal network traffic in Phase 2, the next objective was to investigate network captures containing realistic attack activity. To achieve this, a suitable source of publicly available packet captures was needed.
+Having gained experience analysing normal network traffic in Phase 2, the next objective was to investigate packet captures containing malicious or suspicious activity.
 
-After researching datasets commonly used for network security training and incident response exercises, I discovered the Netresec MACCDC packet capture archive. The archive contains traffic captured during the Mid-Atlantic Collegiate Cyber Defense Competition (MACCDC), a cybersecurity competition where teams defend enterprise networks while being subjected to realistic attacks and intrusion attempts. Found at `https://www.netresec.com/?page=MACCDC` (see img 3.1)
+To find suitable captures, I researched publicly available cybersecurity training resources and came across Malware-Traffic-Analysis.net, a website that provides packet captures and investigation scenarios designed to simulate real-world malware infections and incident response investigations.
 
-The MACCDC datasets are widely used within the cybersecurity community because they contain genuine network activity, including both legitimate business traffic and malicious behaviour such as reconnaissance, exploitation attempts, and other forms of suspicious communication. This makes them valuable resources for developing packet analysis and threat hunting skills.
+The training exercises can be found at:
 
-For this phase, I selected two packet capture files for investigation/analysis:
+https://www.malware-traffic-analysis.net/training-exercises.html
 
-- maccdc2010_00000_20100310205651.pcap
-- maccdc2010_00003_20100311184520.pcap
+Unlike the traffic analysed in previous phases, these captures are specifically designed to contain malicious activity and require the analyst to investigate the network traffic to determine what happened, which systems were affected, and what evidence exists within the packet capture.
 
-These captures were imported into Wireshark and analysed using a combination of protocol statistics, endpoint analysis, conversation tracking, and packet filtering techniques. The objective was to identify indicators of suspicious activity and apply the investigative process that a Security Operations Centre (SOC) analyst might follow when examining network traffic during a security incident.
+---
 
-## maccdc2010_00000_20100310205651.pcap
+## Investigation 1 - Easy As 123
 
-### Initial Capture Overview
+For the first investigation, I selected the exercise **"Easy As 123"**.
+
+The scenario begins with a Security Operations Centre (SOC) receiving alerts from a Security Information and Event Management (SIEM) platform indicating possible NetSupport Manager RAT activity (remote admin tool). The alerts identify communications with the external IP address **45.131.214.85** over TCP port **443**, beginning on **28 February 2026 at 19:55 UTC**.
+
+The exercise provides a packet capture containing traffic from the affected network segment and challenges the analyst to identify the infected Windows host and the user associated with the activity.
+
+The network environment consists of an Active Directory domain named **EASYAS123** operating on the **10.2.28.0/24** network.
+
+The objective of this investigation is to analyse the packet capture using Wireshark, identify the infected workstation, trace its communications, and gather enough evidence to determine who was using the system at the time of the infection.
+
+The exercise requires identification of:
+
+- Infected Windows client IP address
+- Infected Windows client MAC address
+- Host name
+- User account name
+- Full name of the associated user
+
+Before investigating the malicious traffic, I first gathered some general information about the packet capture to better understand the environment and the types of protocols present.
+
+### Capture Overview
 
 | Metric | Value |
 |---|---|
-| File name | maccdc2010_00000_20100310205651.pcap |
-| Capture duration | 21:17:05 |
-| First packet time | 2010-03-10 19:56:51 |
-| Last packet time | 20-03-11 17:13:56 |
-| Total packets | 10000000 |
-| Average packets/sec | 130.5 |
-| Average packet size | 77B |
+| File Name | 2026-02-28-traffic-analysis-exercise.pcap |
+| Capture Duration | 04:21:29 |
+| First Packet Time | 2026-02-28 19:55:06 |
+| Last Packet Time | 2026-03-01 00:16:35 |
+| Total Packets | 15512 |
+| Average Packets/sec | 1.0 |
+| Average Packet Size | 408B |
 
+### Protocol Hierarchy
+
+| Protocol | Percentage | Packets |
+|---|---:|---:|
+| TCP | 80.9 | 12544 |
+| UDP | 13.6 | 2113|
+| DNS | 5.2 | 809 |
+| HTTP | 2.3 | 354 |
+| ARP | 5.4 | 836 |
+| ICMP | 0.1 | 19 |
+
+### Investigation
+
+What are we given?
+
+`LAN segment range: 10.2.28.0/24 (10.2.28.0 through 10.2.28.255)`
+- Anything start with 10.2.28.x is likely internal
+- Anything outside that range is likey external
+- The infected machine should be somewhere inside this range because 
+
+`Domain: easyas123[.]tech`
+- This is the organisations Windows/Active Directory domain name
+- it helps to idenity traffic that belongs to the victim environment 
+- eg "DESKTOP-TEYQ2NR.easyas123.tech" likey means "Windows workstation joined to the easyas123.tech domain"
+
+
+`AD environment name: EASYAS123`
+- This is the short Windows domain / NetBIOS - style name
+- Tells us the domain account name 
+- eg "EASYAS123\jsmith" means user jsmith from EASYAS123 Domain
+
+
+`Active Directory (AD) domain controller: 10.2.28[.]2 - EASYAS123-DC`
+- A domain controller handles things like:
+* Logins
+* Kerberos authentication
+* LDAP directory lookups
+* Group policy
+* Domain DN
+
+So traffic to/from 10.2.28.2 may reveal:
+* Hostnames
+* Usernames
+* Authentication activity
+* Domain membership
+
+`LAN segment gateway: 10.2.28[.]1`
+- This is likely the router/firewall for the network.
+- Internal machines use this to reach the internet
+
+`LAN segment broadcast address: 10.2.28[.]255`
+- standard broadcast of the network
+
+
+*First Step* is to find the internal machine talking to the suspicious ip. Because we are given the suspicious IP we can directly search for communication with it using the command `ip.addr == 45.131.214.85`.
+
+
+
+
+ 
+3.5% of packets (550 total)
+
+mostly communicated with 10.2.28.88
+
+alsmosts entirely tcp and http 
+
+starts at 45 seconds, and keeps coming every 60 seconds, 
