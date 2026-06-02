@@ -264,15 +264,31 @@ By examining protocol statistics and applying display filters, I was able to iso
 One of the most valuable lessons from this exercise was learning how much information can be obtained from network metadata alone, so much information comes from such basic things that we take for granted when using the internet. Although the majority of application traffic was encrypted using HTTPS, DNS requests, connection information, and protocol behaviour still provided useful insight into what services were being accessed and how communication was occurring.
 
 Overall, this phase improved my confidence using Wireshark and reinforced the importance of packet filtering when analysing network traffic. It also provided a practical introduction to the type of traffic investigation and protocol analysis that security analysts perform during day-to-day monitoring and incident response activities.
+
+# Phase 3
+## Suspicious Traffic Patterns
+
+Having gained experience analysing normal network traffic in Phase 2, the next objective was to investigate packet captures containing malicious or suspicious activity.
+
+To find suitable captures, I researched publicly available cybersecurity training resources and came across Malware-Traffic-Analysis.net, a website that provides packet captures and investigation scenarios designed to simulate real-world malware infections and incident response investigations.
+
+The training exercises can be found at:
+
+https://www.malware-traffic-analysis.net/training-exercises.html
+
+Unlike the traffic analysed in previous phases, these captures are specifically designed to contain malicious activity and require the analyst to investigate the network traffic to determine what happened, which systems were affected, and what evidence exists within the packet capture.
+
+---
+
 ## Investigation 1 - Easy As 123
 
-For the first investigation, I selected the exercise "Easy As 123".
+For the first investigation, I selected the exercise **"Easy As 123"**.
 
-The scenario begins with a Security Operations Centre (SOC) receiving alerts from a Security Information and Event Management (SIEM) platform indicating possible NetSupport Manager RAT (Remote Administration Tool) activity. The alerts identify communications with the external IP address 45.131.214.85 over TCP port 443, beginning on 28 February 2026 at 19:55 UTC.
+The scenario begins with a Security Operations Centre (SOC) receiving alerts from a Security Information and Event Management (SIEM) platform indicating possible **NetSupport Manager RAT** (Remote Administration Tool) activity. The alerts identify communications with the external IP address **`45.131.214.85`** over **TCP port 443**, beginning on **28 February 2026 at 19:55 UTC**.
 
 The exercise provides a packet capture containing traffic from the affected network segment and challenges the analyst to identify the infected Windows host and the user associated with the activity.
 
-The network environment consists of an Active Directory domain named EASYAS123 operating on the 10.2.28.0/24 network.
+The network environment consists of an Active Directory domain named **EASYAS123** operating on the **`10.2.28.0/24`** network.
 
 The objective of this investigation is to analyse the packet capture using Wireshark, identify the infected workstation, trace its communications, and gather enough evidence to determine who was using the system at the time of the infection.
 
@@ -289,7 +305,7 @@ The exercise requires identification of:
 ### Capture Overview
 
 | Metric | Value |
-|---|---|
+|----------|----------|
 | File Name | 2026-02-28-traffic-analysis-exercise.pcap |
 | Capture Duration | 04:21:29 |
 | First Packet Time | 2026-02-28 19:55:06 |
@@ -301,7 +317,7 @@ The exercise requires identification of:
 ### Protocol Hierarchy
 
 | Protocol | Percentage | Packets |
-|---|---:|---:|
+|----------|-----------:|---------:|
 | TCP | 80.9 | 12,544 |
 | UDP | 13.6 | 2,113 |
 | DNS | 5.2 | 809 |
@@ -319,34 +335,38 @@ Before analysing the malicious traffic, I reviewed the information provided in t
 
 #### LAN Segment Range
 
-10.2.28.0/24
+**`10.2.28.0/24`**
 
-- Any address beginning with 10.2.28.x is likely internal traffic.
+- Any address beginning with **`10.2.28.x`** is likely internal traffic.
 - Any address outside this range is likely external traffic.
 - The infected workstation should therefore be located somewhere within this range.
 
 #### Active Directory Domain
 
-easyas123.tech
+**`easyas123.tech`**
 
 - This is the organisation's Active Directory domain.
 - It helps identify systems that belong to the victim environment.
-- For example, a hostname such as DESKTOP-TEYQ2NR.easyas123.tech would indicate a workstation joined to the domain.
+- For example, a hostname such as **`DESKTOP-TEYQ2NR.easyas123.tech`** would indicate a workstation joined to the domain.
 
 #### Active Directory Environment Name
 
-EASYAS123
+**`EASYAS123`**
 
 - This is the short Windows domain (NetBIOS) name.
 - It helps identify domain user accounts.
 - Example:
 
-text EASYAS123\jsmith 
+```text
+EASYAS123\jsmith
+```
 
 #### Domain Controller
 
-IP Address: 10.2.28.2  
-Hostname: EASYAS123-DC
+| Item | Value |
+|--------|--------|
+| Hostname | **EASYAS123-DC** |
+| IP Address | **10.2.28.2** |
 
 A Domain Controller handles:
 
@@ -356,25 +376,12 @@ A Domain Controller handles:
 - Group Policy
 - Domain administration
 
-Traffic involving 10.2.28.2 may reveal:
+Traffic involving **`10.2.28.2`** may reveal:
 
 - Hostnames
 - Usernames
 - Authentication activity
 - Domain membership
-
-#### Gateway
-
-10.2.28.1
-
-- Likely the router/firewall for the network.
-- Internal systems use this gateway to access external networks.
-
-#### Broadcast Address
-
-10.2.28.255
-
-- Standard broadcast address for the subnet.
 
 ---
 
@@ -382,55 +389,64 @@ Traffic involving 10.2.28.2 may reveal:
 
 The exercise already provides a suspicious external IP address:
 
-text 45.131.214.85 
+**`45.131.214.85`**
 
 The first step was therefore to identify which internal system was communicating with it.
 
 ### Filter Used
 
-wireshark ip.addr == 45.131.214.85 
+```wireshark
+ip.addr == 45.131.214.85
+```
 
 ### Findings
 
-- Approximately 550 packets matched the filter.
-- The majority of communications involved 10.2.28.88.
-- Traffic was primarily TCP and HTTP.
+- Approximately **550 packets** matched the filter.
+- The majority of communications involved **`10.2.28.88`**.
+- Traffic was primarily **TCP** and **HTTP**.
 - Communications began around 45 seconds into the capture.
 - Requests occurred approximately every 60 seconds before stopping.
 
-The regular communication interval appeared consistent with beaconing behaviour, which is commonly observed in malware command-and-control traffic.
+The regular communication interval appeared consistent with **beaconing behaviour**, which is commonly observed in malware command-and-control traffic.
 
 To confirm this observation, I narrowed the filter further:
 
-wireshark ip.addr == 10.2.28.88 && ip.addr == 45.131.214.85 
+```wireshark
+ip.addr == 10.2.28.88 && ip.addr == 45.131.214.85
+```
 
-The results showed the same traffic, strengthening the conclusion that 10.2.28.88 was the infected workstation.
-
----
+The results showed the same traffic, strengthening the conclusion that **`10.2.28.88`** was the infected workstation.
 
 ### Follow TCP Stream
 
 I then used:
 
-text Follow → TCP Stream 
+```text
+Follow → TCP Stream
+```
 
 to inspect the conversation in more detail.
 
 The stream contained repeated HTTP requests similar to:
 
-http HTTP/1.1 200 OK Server: NetSupport Gateway/1.92 (Windows NT) Content-Type: application/x-www-form-urlencoded Content-Length: 69 Connection: Keep-Alive  POST http://45.131.214.85/fakeurl.htm HTTP/1.1 User-Agent: NetSupport Manager/1.3 Content-Type: application/x-www-form-urlencoded Content-Length: 244 Host: 45.131.214.85 Connection: Keep-Alive 
+```http
+HTTP/1.1 200 OK
+Server: NetSupport Gateway/1.92 (Windows NT)
 
-(See Figure 3.2)
+POST http://45.131.214.85/fakeurl.htm HTTP/1.1
+User-Agent: NetSupport Manager/1.3
+Host: 45.131.214.85
+```
 
 ### Evidence Identified
 
 | Artifact | Value |
-|---|---|
-| Suspected Infected Host | 10.2.28.88 |
-| External RAT Server | 45.131.214.85 |
-| Malware Activity | NetSupport Manager / NetSupport Gateway |
-| URL Observed | http://45.131.214.85/fakeurl.htm |
-| Behaviour | Repeated communications consistent with beaconing |
+|-----------|-----------|
+| **Suspected Infected Host** | **10.2.28.88** |
+| **External RAT Server** | **45.131.214.85** |
+| **Observed Malware Activity** | **NetSupport Manager / NetSupport Gateway** |
+| **URL Observed** | **http://45.131.214.85/fakeurl.htm** |
+| **Behaviour** | **Repeated communications consistent with beaconing** |
 
 The traffic was not simply unknown TCP traffic. The stream explicitly referenced NetSupport Manager and NetSupport Gateway communications while connecting to the exact IP address identified by the SIEM alert.
 
@@ -438,81 +454,68 @@ The traffic was not simply unknown TCP traffic. The stream explicitly referenced
 
 ## Step 2 - Identify the MAC Address
 
-To determine the MAC address of the infected workstation, I applied the following filter:
+Using:
 
-wireshark ip.addr == 10.2.28.88 
+```wireshark
+ip.addr == 10.2.28.88
+```
 
-After selecting a packet and expanding the Ethernet II header, I identified the source MAC address as:
+I expanded the **Ethernet II** header and identified the source MAC address:
 
-text 00:19:d1:b2:4d:ad 
+```text
+00:19:d1:b2:4d:ad
+```
 
 ---
 
 ## Step 3 - Identify the Hostname
 
-My first attempt was to inspect DHCP traffic:
+Using:
 
-wireshark ip.addr == 10.2.28.88 && dhcp 
+```wireshark
+ip.addr == 10.2.28.88 && ip.addr == 10.2.28.2
+```
 
-Although this confirmed the IP-to-MAC relationship, it did not reveal the hostname.
+I examined the Kerberos traffic between the workstation and the Domain Controller.
 
-Since Windows systems regularly communicate with the Domain Controller, I focused on traffic between the suspected workstation and the Domain Controller:
+A Kerberos **AS-REQ** packet contained:
 
-wireshark ip.addr == 10.2.28.88 && ip.addr == 10.2.28.2 
+```text
+HostAddress: DESKTOP-TEYQ2NR<20>
+```
 
-This revealed:
+This identified the hostname as:
 
-- DNS traffic
-- SMB traffic
-- Kerberos traffic
-
-The DNS and SMB traffic largely reinforced information already provided in the exercise brief but did not directly reveal the workstation name.
-
-However, a Kerberos AS-REQ packet (Figure 3.3) contained:
-
-text HostAddress: DESKTOP-TEYQ2NR<20> 
-
-The packet originated from:
-
-text Source:      10.2.28.88 Destination: 10.2.28.2 
-
-By examining the Kerberos authentication traffic, I determined that the hostname of the infected workstation was:
-
-text DESKTOP-TEYQ2NR 
+**`DESKTOP-TEYQ2NR`**
 
 ---
 
 ## Step 4 - Identify the User Account
 
-Within the Kerberos traffic, I examined the cname (Client Name) field.
+Within the Kerberos packet, the **cname** (Client Name) field contained:
 
-This contained:
+```text
+brolf
+```
 
-text brolf 
+This indicated that the workstation was authenticating using the account:
 
-This indicated that the workstation was authenticating with the account:
-
-text EASYAS123\brolf 
-
-At this point I knew the username but not the identity of the person behind it.
-
-I initially searched through LDAP traffic and packet details for references to the username but found no useful results.
+```text
+EASYAS123\brolf
+```
 
 ---
 
 ## Step 5 - Identify the User's Full Name
 
-Further investigation revealed SAMR (Security Account Manager Remote) traffic.
+Further investigation revealed **SAMR (Security Account Manager Remote)** traffic.
 
-SAMR is used by Windows systems to query account information from the Domain Controller.
+Opening a **SAMR QueryUserInfo Response** packet revealed:
 
-I located packets such as:
-
-text 339    16.755086    10.2.28.2    10.2.28.88    SAMR    862    QueryUserInfo Response 
-
-Opening the SAMR QueryUserInfo Response packet (Figure 3.4) revealed both the account name and the user's full name.
-
-text Account Name: brolf Full Name: Becka Rolf 
+```text
+Account Name: brolf
+Full Name: Becka Rolf
+```
 
 This positively identified the user associated with the infected workstation.
 
@@ -521,9 +524,9 @@ This positively identified the user associated with the infected workstation.
 ## Final Findings
 
 | Item | Value |
-|---|---|
-| Infected IP Address | 10.2.28.88 |
-| MAC Address | 00:19:d1:b2:4d:ad |
-| Hostname | DESKTOP-TEYQ2NR |
-| User Account | brolf |
-| Full Name | Becka Rolf |
+|--------|--------|
+| **Infected IP Address** | **10.2.28.88** |
+| **MAC Address** | **00:19:d1:b2:4d:ad** |
+| **Hostname** | **DESKTOP-TEYQ2NR** |
+| **User Account** | **brolf** |
+| **Full Name** | **Becka Rolf** |
